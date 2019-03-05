@@ -42,7 +42,7 @@ function get_next_ms(){
     #echo $minutes
     #let next_i=$1+$minutes
     #next_i=$(($1 + $minutes))
-    next_i=$[ i + minutes ]
+    next_i=$[ 10#$i + minutes ]
     #echo '$1='$i '$next_i='$next_i
     result=$next_i
     if [ $next_i == "60" ]
