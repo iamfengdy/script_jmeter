@@ -7,6 +7,7 @@
 total=$1
 minutes=$2
 next_ms=0   #next minute:second
+error_count=0
 if [ ! $total ]
 then
     total=1
@@ -25,11 +26,24 @@ function analyse(){
     result=${message%%Tidying *}
     time=${message##*Tidying up}
     time=${time%%end of ru*}
+    error=${result##*Err:}
+    error=${error%%(*}
+    error=${error// /}
+    if [ ! $error == 0 ]
+    then
+        let error_count++
+    fi
     echo "Result: "$result
     echo "Time: "$time
 }
 function get_next_ms(){
-    next_i=$(($1 + $minutes))
+    local i=$1
+    #echo $i
+    #echo $minutes
+    #let next_i=$1+$minutes
+    #next_i=$(($1 + $minutes))
+    next_i=$[ i + minutes ]
+    #echo '$1='$i '$next_i='$next_i
     result=$next_i
     if [ $next_i == "60" ]
     then
@@ -54,6 +68,7 @@ function run_period(){
 }
 
 echo ""
+echo "================================="
 echo "Total: "$total" Sleep: "$minutes
 now_minute=`date "+%M"`
 get_next_ms $now_minute
@@ -83,4 +98,6 @@ do
         fi
     done
 done
-
+echo ""
+echo "Error count: "$error_count
+echo "================================="
