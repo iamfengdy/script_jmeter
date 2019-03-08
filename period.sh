@@ -3,16 +3,25 @@
 @Email:iamfengdy@126.com
 @DateTime:五  3/ 1 17:17:44 2019
 !
-./clean.sh 
+#./clean.sh 
 total=$1
 minutes=$2
+run_cmd=$3
 next_ms=0   #next minute:second
 error_count=0
+#if (( $# > 2 ))
+#then
+#    run_cmd=${run_cmd:3}
+#else
+if [ ! -e $run_cmd ]
+then
+    run_cmd="./run.sh"
+fi
 if [ ! $total ]
 then
     total=1
 fi
-if [ ! $minutes ] || (($minutes < 1)) || (($minutes > 5));
+if [ ! $minutes ] || (($minutes < 1)) || (($minutes > 5))
 then
     minutes=1
 fi
@@ -61,7 +70,9 @@ function run_period(){
     echo ""
     echo "No: "$no" Path:"$folder
     mkdir $folder
-    message=$("./start.sh")
+    #message=$("./start.sh")
+    #echo "=="$run_cmd"=="
+    message=$("$run_cmd")
     analyse $message
     mv ./result.txt $folder"/"
     mv ./html $folder"/"
@@ -69,7 +80,7 @@ function run_period(){
 
 echo ""
 echo "================================="
-echo "Total: "$total" Sleep: "$minutes
+echo "Total: "$total" Sleep: "$minutes "Command: "$run_cmd
 now_minute=`date "+%M"`
 get_next_ms $now_minute
 if [ $total -gt 1 ]

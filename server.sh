@@ -5,10 +5,10 @@
 !
 _IFS=$IFS
 IFS=$";"
-cmds="jmeter -n -t test-tcp.jmx -l ./result.txt -e -o ./html"
+cmds="./clean.sh;./scp.sh;ls"
 for cmd in $cmds
 do 
-    echo "#] "$cmd
-    eval $cmd
+    echo $cmd
+    $cmd
 done
 IFS=$_IFS
