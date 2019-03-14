@@ -138,8 +138,11 @@ class JmeterResult(Result):
 
 def run_command(command):
     # result = subprocess.check_output(command.split(" "))
-    result = subprocess.check_output(command, shell=True)
-    return result.decode()
+    try:
+        result = subprocess.check_output(command, shell=True)
+        return result.decode()
+    except Exception:
+        return None
 
 
 def analyse_result(message):
@@ -181,8 +184,19 @@ def do_finish(folder_path):
 
 def run_once(command, folder_name):
     output = run_command(command)
-    run_time, error_count, timestamp = analyse_result(output)
-    cr = CommandResult(folder_name, run_time, timestamp=timestamp, error_count=error_count)
+    if output is None:
+        run_time = 0
+        error_count = 0
+        success = False
+        timestamp = get_next_time()
+    else:
+        success = True
+        run_time, error_count, timestamp = analyse_result(output)
+    cr = CommandResult(folder_name,
+                       run_time,
+                       timestamp=timestamp,
+                       error_count=error_count,
+                       success=success)
     do_finish(folder_name)
     return cr
 
