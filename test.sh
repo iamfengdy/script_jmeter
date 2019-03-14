@@ -5,3 +5,9 @@
 !
 a=`date "+%Y-%m-%d %H:%M:%S"`
 echo $a
+
+a=`date "+%M"`
+a=08
+b=1
+a=$[ 10#$a+b ]
+echo $a
