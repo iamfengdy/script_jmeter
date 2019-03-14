@@ -7,7 +7,7 @@ jmx_files="10"
 thread_nums="100"
 timeout_nums="20"
 time_sleep=1m
-run_total=2
+run_total=30
 run_interval=1
 run_count=10
 cmds="jmeter -n -t _FILE_NAME.jmx -l result.txt -e -o html -JTHREAD_NUM=_THREAD_NUM -JTIMEOUT=_TIMEOUT000 -JSERVER_IP=47.110.151.58"
@@ -63,17 +63,8 @@ function run_period(){
     clean    
 }
 
-jmx_files="30 60"
-thread_nums="200 190 180 170 160 150 140 130 120 110 100"
+jmx_files="60 30 10"
+thread_nums="140 120 100"
 timeout_nums="30 20"
-#run_period
-
-jmx_files="10"
-thread_nums="200 210 220" 
-timeout_nums="30"
-#run_period
-
-jmx_files="10"
-thread_nums="1" 
-timeout_nums="20"
 run_period
+
