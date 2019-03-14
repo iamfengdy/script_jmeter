@@ -3,46 +3,51 @@
 # @Author:fengdy
 # @Email:iamfengdy@126.com
 # @DateTime:2019/03/13 10:31
- 
-'''jmeter performance test '''
+
+
+""" jmeter performance test """
 __version__ = '1.0'
 __history__ = ''' '''
 __all__ = []
 
+
 import os
-import sys
-import argparse 
+import argparse
 import logging
 from datetime import timedelta
 from datetime import datetime as dtime
 from configparser import ConfigParser, ExtendedInterpolation
 import subprocess
 import shutil
-import re
+
 logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s [%(lineno)d] %(levelname)s %(message)s',
-        # format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
         datefmt='%Y%m%d %H:%M:%S',
-        # datefmt='%a, %d %b %Y %H:%M:%S',
-        # filename='/tmp/test.log',
-        # filename=stdout,
+        filename='result.log',
         filemode='w'
     )
 log = logging.getLogger()
-SEPARATE_LINE="*"*24
-NEXT_RUN_TS=None
-NOW_RUN_TS=None
-JMETER_LOG_FILE="result.txt"
-JMETER_RESULT_FOLDER="html"
-SERVER_PORT='9000'
-COMMAND="jmeter -n -t {file_name} -l result.txt -e -o html -JTHREAD_NUM={thread} -JTIMEOUT={timeout}000 -JSERVER_IP={server_ip}"
+SEPARATE_LINE = "*"*24
+NEXT_RUN_TS = None
+NOW_RUN_TS = None
+JMETER_LOG_FILE = "result.txt"
+JMETER_RESULT_FOLDER = "html"
+SERVER_PORT = '9000'
+COMMAND = "jmeter -n -t {file_name} -l "\
+          + JMETER_LOG_FILE \
+          + " -e -o " \
+          + JMETER_RESULT_FOLDER\
+          + " -JTHREAD_NUM={thread}" \
+            " -JTIMEOUT={timeout}000" \
+            " -JSERVER_IP={server_ip}"
 LOG_HELP=[
     "",
     "CMD: command",
     "TST: test start time",
     "CST: command start time"
 ]
+
 
 class Command:
     def __init__(self, argument):
@@ -69,6 +74,7 @@ class Command:
 class Result:
     def __init__(self):
         pass
+
     def init(self, kwargs):
         if isinstance(kwargs, dict):
             self.__dict__.update(kwargs)
@@ -123,7 +129,6 @@ class JmeterResult(Result):
         self.set_max_time(commandresult.run_time)
         self.set_min_time(commandresult.run_time)
 
-
     def __str__(self):
         _string = "MaxTime:{} MinTime:{} Error:{} ErrorMaxTime:{}, ErrorMinTime:{}, ErrorResult:\n".format(
             self.max_time, self.min_time, self.error_count, self.error_max_time, self.error_min_time)
@@ -144,7 +149,6 @@ def analyse_result(message):
     run_time = 0
     error_count = 0
     ts = 0
-    print(message)
     for line in message.split("\n"):
         line = line.replace(" ", "")
         if line.count("summary=") > 0:
@@ -202,6 +206,7 @@ def get_next_time(ts=None, interval=0):
     next_ts = now_ts + timedelta(minutes=interval)
     return dtime.strftime(next_ts, ts_format)
 
+
 def wait_to_run(interval, func, *args, **kwargs):
     """
     Wait to run
@@ -220,6 +225,7 @@ def wait_to_run(interval, func, *args, **kwargs):
     NOW_RUN_TS = ts
     NEXT_RUN_TS = get_next_time(ts, interval)
     return func(*args, **kwargs)
+
 
 def _run(command):
     assert isinstance(command, Command), "command should be subclass of Command!"
