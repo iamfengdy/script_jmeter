@@ -47,6 +47,8 @@ LOG_HELP=[
     "TST: test start time",
     "CST: command start time"
 ]
+COMMAND_ERROR = "Command is wrong!"
+COMMAND_OUTPUT_ERROR = "Command ouput is wrong!"
 
 
 class Command:
@@ -89,7 +91,7 @@ class CommandResult(Result):
         self.timestamp = timestamp
 
     def __str__(self):
-        _string = "Folder:{} Error:{} Timestamp:{}".format(self.folder_name, self.error_count, self.timestamp)
+        _string = "Folder:{} Error:{} Timestamp:{}, Success:{}".format(self.folder_name, self.error_count, self.timestamp, self.success)
         return _string
 
 
@@ -107,7 +109,6 @@ class JmeterResult(Result):
     def add_error(self, commandresult):
         self.error_results.append(commandresult)
         self.error_count += 1
-        self.success = False
 
     def set_max_time(self, ts):
         self.max_time = self.max_time if self.max_time >= ts else ts
@@ -141,7 +142,8 @@ def run_command(command):
     try:
         result = subprocess.check_output(command, shell=True)
         return result.decode()
-    except Exception:
+    except Exception as e:
+        log.error(e.msg)
         return None
 
 
@@ -152,25 +154,30 @@ def analyse_result(message):
     run_time = 0
     error_count = 0
     ts = 0
-    for line in message.split("\n"):
-        line = line.replace(" ", "")
-        if line.count("summary=") > 0:
-            _, rt, ec = line.split("=")
-            run_time = rt.split("in")[1]
-            _, ec = ec.split("Err:")
-            error_count, _ = ec.split("(")
-            continue
-        if line.count("Tidyingup") > 0:
-            line = line.split("(")[1]
-            line = line.split(")")[0]
-            ts = line
-            continue
-    if run_time.count(":") == 2:
-        h, m, s = run_time.split(":")
-        run_time = int(h)*3600+int(m)*60+int(s)
-    else:
-        run_time = 0
-    return run_time, int(error_count), ts
+    try:
+        for line in message.split("\n"):
+            line = line.replace(" ", "")
+            if line.count("summary=") > 0:
+                _, rt, ec = line.split("=")
+                run_time = rt.split("in")[1]
+                _, ec = ec.split("Err:")
+                error_count, _ = ec.split("(")
+                error_count = int(error_count)
+                continue
+            if line.count("Tidyingup") > 0:
+                line = line.split("(")[1]
+                line = line.split(")")[0]
+                ts = line
+                continue
+        if run_time.count(":") == 2:
+            h, m, s = run_time.split(":")
+            run_time = int(h)*3600+int(m)*60+int(s)
+        else:
+            run_time = 0
+    except:
+        error_count = COMMAND_OUTPUT_ERROR
+        log.error(message)
+    return run_time, error_count, ts
 
 
 def do_finish(folder_path):
@@ -186,12 +193,11 @@ def run_once(command, folder_name):
     output = run_command(command)
     if output is None:
         run_time = 0
-        error_count = 0
-        success = False
+        error_count = COMMAND_ERROR
         timestamp = get_next_time()
     else:
-        success = True
         run_time, error_count, timestamp = analyse_result(output)
+    success = error_count == 0
     cr = CommandResult(folder_name,
                        run_time,
                        timestamp=timestamp,
