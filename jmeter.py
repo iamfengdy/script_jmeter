@@ -28,6 +28,7 @@ logging.basicConfig(
         filemode='w'
     )
 log = logging.getLogger()
+
 SEPARATE_LINE = "*"*24
 NEXT_RUN_TS = None
 NOW_RUN_TS = None
@@ -67,6 +68,7 @@ class Command:
         self.total = argument.total
         self.interval = argument.interval
         self.command = COMMAND.format(file_name=self.file_name, thread=self.thread, timeout=self.timeout, server_ip=self.server_ip)
+        log.setLevel(argument.loglevel.upper())
 
     def __str__(self):
         _string = "Thread:{} File:{} Timeout:{} Address:{}".format(self.thread, self.file_name, self.timeout, self.address)
@@ -133,7 +135,7 @@ class JmeterResult(Result):
     def __str__(self):
         _string = "MaxTime:{} MinTime:{} Error:{} ErrorMaxTime:{}, ErrorMinTime:{}, ErrorResult:\n".format(
             self.max_time, self.min_time, self.error_count, self.error_max_time, self.error_min_time)
-        _string += "\n".join([ str(er) for er in self.error_results])
+        _string += "\n".join([ "\t"+str(er) for er in self.error_results])
         return _string
 
 
@@ -217,6 +219,7 @@ def parse_argument():
     parser.add_argument("-th", "--thread", help="thread num", type=int, default=10)
     parser.add_argument("-to", "--total", help="run total", type=int, default=10)
     parser.add_argument("-in", "--interval", help="run interval (m)", type=int, default=1)
+    parser.add_argument("-ll", "--loglevel", help="log level", choices=("debug", "info", "warning", "error"), default="info")
     return parser
 
 
@@ -249,11 +252,11 @@ def wait_to_run(interval, func, *args, **kwargs):
 
 def _run(command):
     assert isinstance(command, Command), "command should be subclass of Command!"
-    log.debug(SEPARATE_LINE)
+    log.info(SEPARATE_LINE)
     log.info("CMD: "+command.command)
-    log.debug(SEPARATE_LINE)
     # TST:test start time
-    log.debug("TST: "+str(NOW_RUN_TS))
+    log.info("TST: "+str(NOW_RUN_TS))
+    log.info(SEPARATE_LINE)
     jr = JmeterResult(command.command)
     for i in range(command.total):
         # CST:command start time
@@ -269,10 +272,10 @@ def run_argument(argument):
 
 
 def run_arguments(_total, _interval,
-                  _address, _file, _thread, _timeout, _separator):
+                  _address, _file, _thread, _timeout, _separator, _loglevel):
     parser = parse_argument()
     for a in _address.split(_separator):
-        _argument = ['-to', _total, '-in', _interval, '-a', a]
+        _argument = ['-to', _total, '-in', _interval, '-a', a, '-ll', _loglevel]
         for f in _file.split(_separator):
             _argument.extend(['-f', f])
             for th in _thread.split(_separator):
@@ -295,7 +298,8 @@ def run_from_config(config_path):
         _interval = configParser.get(section, 'interval')
         _thread = configParser.get(section, 'thread')
         _timeout = configParser.get(section, 'timeout')
-        run_arguments(_total, _interval, _address, _file, _thread, _timeout, _separator)
+        _loglevel = configParser.get(section, 'loglevel')
+        run_arguments(_total, _interval, _address, _file, _thread, _timeout, _separator, _loglevel)
 
 
 def run_from_argument(argument):
@@ -306,7 +310,8 @@ def run_from_argument(argument):
     _interval = argument.interval
     _thread = argument.thread
     _timeout = argument.timeout
-    run_arguments(_total, _interval, _address, _file, _thread, _timeout, _separator)
+    _loglevel = argument.loglevel
+    run_arguments(_total, _interval, _address, _file, _thread, _timeout, _separator, _loglevel)
 
 
 def run(argument):
