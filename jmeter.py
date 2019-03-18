@@ -29,7 +29,6 @@ logging.basicConfig(
     )
 log = logging.getLogger()
 
-SEPARATE_LINE = "*"*24
 NEXT_RUN_TS = None
 NOW_RUN_TS = None
 JMETER_LOG_FILE = "result.txt"
@@ -93,7 +92,8 @@ class CommandResult(Result):
         self.timestamp = timestamp
 
     def __str__(self):
-        _string = "Folder:{} Error:{} Timestamp:{}, Success:{}".format(self.folder_name, self.error_count, self.timestamp, self.success)
+        _string = "Folder:{} Error:{} Timestamp:{} Success:{}".format(
+                self.folder_name, self.error_count, self.timestamp, self.success)
         return _string
 
 
@@ -232,7 +232,7 @@ def get_next_time(ts=None, interval=0):
 
 def wait_to_run(interval, func, *args, **kwargs):
     """
-    Wait to run
+    Wait to run func(*args, **kwargs)
     :param func: function will be executed
     :param interval: wait interval to run
     :param args: args of function
@@ -252,11 +252,10 @@ def wait_to_run(interval, func, *args, **kwargs):
 
 def _run(command):
     assert isinstance(command, Command), "command should be subclass of Command!"
-    log.info(SEPARATE_LINE)
+    log.info("<"+"-"*10)
     log.info("CMD: "+command.command)
     # TST:test start time
     log.info("TST: "+str(NOW_RUN_TS))
-    log.info(SEPARATE_LINE)
     jr = JmeterResult(command.command)
     for i in range(command.total):
         # CST:command start time
@@ -264,6 +263,7 @@ def _run(command):
         cr = wait_to_run(command.interval, run_once, command.command, NOW_RUN_TS[4:])
         jr.add_commandresult(cr)
     log.info(jr)
+    log.info("-"*10+">")
 
 
 def run_argument(argument):
@@ -316,10 +316,13 @@ def run_from_argument(argument):
 
 def run(argument):
     log.debug("\n".join(LOG_HELP))
+    _s = "**********"
+    log.info(_s + " TEST START " + _s)
     if argument.config and os.path.exists(argument.config):
         run_from_config(argument.config)
     else:
         run_from_argument(argument)
+    log.info(_s + " TEST  END  " + _S)
 
 
 if __name__ == "__main__":
