@@ -145,7 +145,8 @@ def run_command(command):
         result = subprocess.check_output(command, shell=True)
         return result.decode()
     except Exception as e:
-        log.error(e.msg)
+        #log.error(e.msg)
+        log.error(e)
         return None
 
 
@@ -322,7 +323,7 @@ def run(argument):
         run_from_config(argument.config)
     else:
         run_from_argument(argument)
-    log.info(_s + " TEST  END  " + _S)
+    log.info(_s + " TEST  END  " + _s)
 
 
 if __name__ == "__main__":
