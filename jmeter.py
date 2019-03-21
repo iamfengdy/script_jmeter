@@ -186,10 +186,13 @@ def analyse_result(message):
 def do_finish(folder_path):
     log_path = JMETER_LOG_FILE
     result_path = JMETER_RESULT_FOLDER
-    if not os.path.exists(folder_path):
-        os.mkdir(folder_path)
-    shutil.move(log_path, folder_path)
-    shutil.move(result_path, folder_path)
+    try:
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
+        shutil.move(log_path, folder_path)
+        shutil.move(result_path, folder_path)
+    except Exception as e:
+        pass
 
 
 def run_once(command, folder_name):
